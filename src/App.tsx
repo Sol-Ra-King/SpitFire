@@ -15,7 +15,7 @@
 //   }
 
 //   useEffect(() => {
-    
+
 //   },[])
 
 //   axios.get(
@@ -30,16 +30,14 @@
 //     let songArray: artistSongs | string[] = []
 //     console.log(songArray)
 //     const apiData = res.data.response.hits
-//     for(let i = 0; i <= apiData.length; i++){
-//       let fullTitle: string = apiData[i].result.full_title
+//     for(let i = 0; i < apiData.length; i++){
+//       let fullTitle: string = apiData[i]?.result.full_title
 //       songArray.push(fullTitle)
 //       console.log(songArray)
 //     }
 //     console.log(songArray)
 //   }
 //   ).catch(err => console.log(err))
-
-
 
 //   return <div>Genius API Example</div>;
 // };
@@ -84,13 +82,14 @@ const App: React.FC = () => {
       .catch((err) => console.log(err));
   }, []);
 
+  const displaySongsArray = songsArray?.map((song) => {
+    return <li>{song}</li>;
+  })
+
   return (
     <div className="App">
       <ul>
-        {songsArray &&
-          songsArray.map((song) => {
-            return <li>{song}</li>;
-          })}
+        {displaySongsArray}
       </ul>
     </div>
   );
