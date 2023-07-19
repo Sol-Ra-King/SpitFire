@@ -1,52 +1,7 @@
-// import React, { useEffect, useState } from "react";
-// import "./App.css";
-// import axios from 'axios'
-
-// const App: React.FC = () => {
-
-//   interface songNames {
-//     result : {
-//       full_title: string
-//     }
-//   }
-
-//   interface artistSongs {
-//     arrayOfSongs: songNames[]
-//   }
-
-//   useEffect(() => {
-
-//   },[])
-
-//   axios.get(
-//     'https://cors-anywhere.herokuapp.com/https://api.genius.com/search?q=Zeds%20Dead',
-//     {
-//       headers: {
-//         Authorization: 'Bearer z7fzzVCwih1VI38S3gFhNRnG-01H2hh6p9DJZIA_S7l2CGWypTTqeoS3XFfUjmkq'
-//       }
-//     }
-//   ).then((res) => {
-//     console.log(res)
-//     let songArray: artistSongs | string[] = []
-//     console.log(songArray)
-//     const apiData = res.data.response.hits
-//     for(let i = 0; i < apiData.length; i++){
-//       let fullTitle: string = apiData[i]?.result.full_title
-//       songArray.push(fullTitle)
-//       console.log(songArray)
-//     }
-//     console.log(songArray)
-//   }
-//   ).catch(err => console.log(err))
-
-//   return <div>Genius API Example</div>;
-// };
-
-// export default App;
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./App.css";
 import axios from "axios";
+import InputBox from "./components/InputBox"
 
 const App: React.FC = () => {
   interface SongNames {
@@ -60,37 +15,62 @@ const App: React.FC = () => {
       hits: SongNames[];
     };
   }
+
+  interface setArtistLookedUpInterface {
+    
+  }
+
   const [songsArray, setSongsArray] = useState<string[]>();
 
+  const [artistLookedUp, setArtistLookedUp] = useState<string>("Zeds Dead")
+
+
   useEffect(() => {
-    axios
-      .get<APIResponse>(
-        "https://cors-anywhere.herokuapp.com/https://api.genius.com/search?q=King%20Gizzard%20&%20The%20Lizard%20Wizard",
+    const fetchData = async (): Promise<void> => {
+      const data = await fetch(
+        `https://cors-anywhere.herokuapp.com/https://api.genius.com/search?q=${artistLookedUp}`,
         {
           headers: {
             Authorization:
               "Bearer z7fzzVCwih1VI38S3gFhNRnG-01H2hh6p9DJZIA_S7l2CGWypTTqeoS3XFfUjmkq",
           },
         }
-      )
-      .then((res) => {
-        const apiData = res.data.response.hits;
-        const songArray = apiData.map((song) => song.result.full_title);
-        console.log(songArray);
-        setSongsArray(songArray);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+      );
+      const jsonData = await data.json();
+      const songArray = jsonData.response.hits.map((song:SongNames) => song.result.full_title);
+      setSongsArray(songArray);
+    };
+    fetchData();
+  }, [artistLookedUp]);
 
   const displaySongsArray = songsArray?.map((song) => {
     return <li>{song}</li>;
-  })
+  });
+
+  const inputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement>(null)
+
+  const setArtistLookedUpHandler: React.FormEventHandler<HTMLFormElement>  = (e)=> {
+    e.preventDefault()
+    let artist = inputRef.current?.value
+
+    if (artist){
+      let mappedArtist = artist.split(" ").map((namePart) => {
+        let capitalizedLetter = namePart[0].toUpperCase()
+        return namePart.replace(namePart[0], capitalizedLetter) + "%20"
+      })
+
+      let stringedArtist = mappedArtist.join().replaceAll(",","")
+      setArtistLookedUp(stringedArtist.slice(0,stringedArtist.length - 3))
+    }
+
+  }
+
+
 
   return (
     <div className="App">
-      <ul>
-        {displaySongsArray}
-      </ul>
+      <InputBox onSubmitHandler={setArtistLookedUpHandler} inputRef={inputRef}></InputBox>
+      <ul>{displaySongsArray}</ul>
     </div>
   );
 };
